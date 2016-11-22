@@ -5,11 +5,11 @@
 #include <termios.h>
 
 
-#define IN 27
-#define TOUCH 3
-#define PIEZO 23
-#define CDSIN 28
-#define CDSOUT 29
+#define IN 16
+#define TOUCH 22
+#define PIEZO 13
+#define CDSIN 20
+#define CDSOUT 21
 
 
 int main(void)
@@ -32,17 +32,35 @@ int main(void)
 	tcflush(uart0_filestream, TCIFLUSH);
 	tcsetattr(uart0_filestream, TCSANOW, &options);
 	int n=0;
-	wiringPiSetup();
+	if(wiringPiSetupGpio()==-1)
+	return 1;
 
 	pinMode(IN, OUTPUT);
 	pinMode(TOUCH, INPUT);
 	pinMode(PIEZO, PWM_OUTPUT);
 	pinMode(CDSIN, INPUT);
 	pinMode(CDSOUT, OUTPUT);
-	digitalWrite(CDSOUT, 1);
+	digitalWrite(CDSOUT, HIGH);
+	digitalWrite(IN,HIGH);
 	int d=0;
 	while(1)
 	{
+		if((d==0)&&(digitalRead(CDSIN)==0))
+		{
+			printf("lamp ON\n");
+			//digitalWrite(IN,LOW);
+			pwmWrite(PIEZO, 7);
+			delay(300);
+			pwmWrite(PIEZO, 0);
+			digitalWrite(IN,LOW);
+			delay(9000);
+			printf("lamp OFF\n");
+			digitalWrite(IN,HIGH);
+			pwmWrite(PIEZO, 7);
+			delay(300);
+			pwmWrite(PIEZO, 0);
+			d=1;
+		}
 		if(uart0_filestream != -1)
 		{
 			unsigned char rx_buffer[1];
